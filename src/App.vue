@@ -954,7 +954,9 @@ async function checkForUpdate() {
     }
   } catch (e) {
     updateChecking.value = false
-    updateCheckError.value = '网络连接失败，请检查网络后重试'
+    // 展示 Rust 返回的真实原因（如 HTTP 401/403/404），便于定位而非一律归咎于网络
+    const raw = typeof e === 'string' ? e : (e && e.message) || ''
+    updateCheckError.value = raw || '检查更新失败，请检查网络后重试'
     console.warn('[update] 检查更新失败:', e)
   }
 }

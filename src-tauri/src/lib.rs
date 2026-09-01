@@ -145,11 +145,63 @@ const DEFAULT_TOKEN: &str = "github_pat_PLACEHOLDER_REPLACED_DO_NOT_USE";
 /// 动态 Token（运行时由前端注入，优先级高于 DEFAULT_TOKEN）
 static DYNAMIC_TOKEN: Mutex<String> = Mutex::new(String::new());
 
-/// 获取当前生效的 GitHub Token
-fn token() -> String {
-    match DYNAMIC_TOKEN.lock() {
-        Ok(guard) if !guard.is_empty() => guard.clone(),
-        _ => DEFAULT_TOKEN.to_string(),
+/// 连接超时（读取不限时，避免大安装包下载被中途截断）
+const CONNECT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(15);
+
+/// 判断 Token 是否为有效令牌（空串或占位符视为无效）
+/// 注意：GitHub 对携带无效 Token 的请求会直接返回 401 Bad credentials，
+/// 反而比匿名请求更容易失败——公开仓库匿名即可访问，因此宁可不发该请求头。
+fn is_valid_token(t: &str) -> bool {
+    let t = t.trim();
+    !t.is_empty() && !t.contains("PLACEHOLDER")
+}
+
+/// 获取当前生效的 GitHub Token；无有效 Token 时返回 None（匿名访问）
+fn token() -> Option<String> {
+    let dynamic = DYNAMIC_TOKEN.lock().ok().map(|g| g.trim().to_string());
+    if let Some(t) = dynamic {
+        if is_valid_token(&t) {
+            return Some(t);
+        }
+    }
+    if is_valid_token(DEFAULT_TOKEN) {
+        return Some(DEFAULT_TOKEN.trim().to_string());
+    }
+    None
+}
+
+/// 构造带通用请求头的请求（仅在存在有效 Token 时附加 Authorization）
+fn build_request(url: &str, accept: &str) -> ureq::Request {
+    // 只设连接超时：Request::timeout 是「整个请求」的总时长，会截断大安装包下载，绝不能设
+    let agent = ureq::builder().timeout_connect(CONNECT_TIMEOUT).build();
+    let mut req = agent
+        .get(url)
+        .set("Accept", accept)
+        .set("User-Agent", "masters-workbench-updater");
+    if let Some(t) = token() {
+        req = req.set("Authorization", &format!("Bearer {}", t));
+    }
+    req
+}
+
+/// 把 ureq 错误转成可读信息：HTTP 错误附带 GitHub 返回的状态码与 message
+/// 这样前端提示能区分「网络不通」与「Token 无效 / 仓库不存在」，便于排查
+fn describe_http_error(e: ureq::Error) -> String {
+    match e {
+        ureq::Error::Status(code, resp) => {
+            let detail = resp
+                .into_string()
+                .ok()
+                .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
+                .and_then(|v| v["message"].as_str().map(|m| m.to_string()))
+                .unwrap_or_default();
+            if detail.is_empty() {
+                format!("GitHub 返回 HTTP {}", code)
+            } else {
+                format!("GitHub 返回 HTTP {}（{}）", code, detail)
+            }
+        }
+        ureq::Error::Transport(t) => format!("网络请求失败：{}", t),
     }
 }
 
@@ -237,12 +289,9 @@ fn check_for_update(current_version: String) -> Result<Option<serde_json::Value>
         GITHUB_OWNER, GITHUB_REPO
     );
 
-    let response = ureq::get(&url)
-        .set("Accept", "application/vnd.github+json")
-        .set("User-Agent", "masters-workbench-updater")
-        .set("Authorization", &format!("Bearer {}", token()))
+    let response = build_request(&url, "application/vnd.github+json")
         .call()
-        .map_err(|e| format!("GitHub API 请求失败: {}", e))?;
+        .map_err(describe_http_error)?;
 
     let releases: serde_json::Value = response
         .into_json()
@@ -322,14 +371,15 @@ async fn download_update(
 
     std::thread::spawn(move || {
         let result = (|| -> Result<(), String> {
-            let mut req = ureq::get(&url_clone)
-                .set("User-Agent", "masters-workbench-updater")
-                .set("Authorization", &format!("Bearer {}", token()));
             // asset API 端点需要 Accept: application/octet-stream 才返回文件流
-            if url_clone.contains("/releases/assets/") {
-                req = req.set("Accept", "application/octet-stream");
-            }
-            let response = req.call().map_err(|e| format!("下载请求失败: {}", e))?;
+            let accept = if url_clone.contains("/releases/assets/") {
+                "application/octet-stream"
+            } else {
+                "*/*"
+            };
+            let response = build_request(&url_clone, accept)
+                .call()
+                .map_err(describe_http_error)?;
 
             let total: u64 = response
                 .header("Content-Length")
