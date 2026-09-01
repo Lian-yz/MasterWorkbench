@@ -97,7 +97,7 @@ function getOwnerRepo() {
   } catch (e) {
     /* ignore */
   }
-  return { owner: 'Lian-yz', repo: 'MW5' }
+  return { owner: 'Lian-yz', repo: 'MasterWorkbench' }
 }
 
 function getToken(args) {

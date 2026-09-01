@@ -6,7 +6,7 @@
 
 输入 → 执行 → 复盘 → 激励，四维闭环的个人成长管理系统
 
-[![Version](https://img.shields.io/badge/version-5.0.265-blue)](https://github.com/Lian-yz/MW5/releases)
+[![Version](https://img.shields.io/badge/version-5.0.265-blue)](https://github.com/Lian-yz/MasterWorkbench/releases)
 [![Tauri](https://img.shields.io/badge/Tauri-2.x-orange)](https://tauri.app)
 [![Vue](https://img.shields.io/badge/Vue-3-brightgreen)](https://vuejs.org)
 
@@ -223,8 +223,8 @@ MasterWorkbench/
 ### 安装依赖
 
 ```bash
-git clone https://github.com/Lian-yz/MW5.git
-cd MW5
+git clone https://github.com/Lian-yz/MasterWorkbench.git
+cd MasterWorkbench
 npm install
 ```
 
@@ -250,7 +250,7 @@ npx tauri build
 
 ### 下载安装
 
-前往 [Releases 页面](https://github.com/Lian-yz/MW5/releases) 下载最新版安装包：
+前往 [Releases 页面](https://github.com/Lian-yz/MasterWorkbench/releases) 下载最新版安装包：
 
 - `MasterWorkbench_5.0.X_x64-setup.exe` — Windows 安装包
 - `source-5.0.X.zip` — 完整源码包
@@ -320,7 +320,7 @@ Copyright &copy; 2026 牛马科技. All Rights Reserved.
 
 本项目为个人学习与科研用途开发，源代码仅供学习参考。
 
-如需二次开发，请前往 [Releases](https://github.com/Lian-yz/MW5/releases) 下载源码包，解压后执行：
+如需二次开发，请前往 [Releases](https://github.com/Lian-yz/MasterWorkbench/releases) 下载源码包，解压后执行：
 
 ```bash
 npm install

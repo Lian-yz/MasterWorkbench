@@ -137,7 +137,7 @@ use std::sync::Mutex;
 
 /// GitHub 仓库信息
 const GITHUB_OWNER: &str = "Lian-yz";
-const GITHUB_REPO: &str = "MW5";
+const GITHUB_REPO: &str = "MasterWorkbench";
 
 /// 默认 GitHub Token（编译时硬编码，前端可通过 set_github_token 动态覆盖）
 const DEFAULT_TOKEN: &str = "github_pat_PLACEHOLDER_REPLACED_DO_NOT_USE";
