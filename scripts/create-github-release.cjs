@@ -100,6 +100,10 @@ function getOwnerRepo() {
   return { owner: 'Lian-yz', repo: 'MasterWorkbench' }
 }
 
+// 提升为模块级常量：uploadAsset / ensureRelease 等函数内部也要用，
+// 若只在主流程作用域解构，这些函数运行时会抛 ReferenceError: owner is not defined
+const { owner, repo } = getOwnerRepo()
+
 function getToken(args) {
   if (args.token) return args.token
   if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN
@@ -353,7 +357,6 @@ async function uploadInstaller(token, release, installerPath) {
 // ============================= 主流程 =============================
 ;(async () => {
   const args = parseArgs(process.argv.slice(2))
-  const { owner, repo } = getOwnerRepo()
 
   const currentVersion = readTauriVersion()
   let newVersion
