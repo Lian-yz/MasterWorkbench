@@ -1,6 +1,6 @@
 {
   "name": "master-workbench",
-  "version": "5.0.193",
+  "version": "5.0.282",
   "description": "研究生全维度成长工作台 - 输入执行复盘激励四维闭环",
   "type": "module",
   "main": "electron/main.js",

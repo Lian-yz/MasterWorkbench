@@ -1,6 +1,6 @@
 [package]
 name = "masters-workbench"
-version = "5.0.281"
+version = "5.0.282"
 description = "MasterWorkbench - Windows 桌面端 (Tauri)"
 authors = ["Lian-yz"]
 edition = "2021"

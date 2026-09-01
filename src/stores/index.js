@@ -1875,7 +1875,7 @@ export const useSettingsStore = defineStore('settings', {
     taskCategories: load('taskCategories', [...TASK_CATEGORIES]),
     taskStates: load('taskStates', [...DEFAULT_TASK_STATES]),
     morningPopupShown: load('morningPopupShown', null), // date string
-    appVersion: load('appVersion', '5.0.281'),
+    appVersion: load('appVersion', '5.0.282'),
     changelog: load('changelog', []),
     autoBackupEnabled: load('autoBackupEnabled', true),
     // 版本回滚快照历史（每次升�?导入前自动保存，朢��?3 个）
